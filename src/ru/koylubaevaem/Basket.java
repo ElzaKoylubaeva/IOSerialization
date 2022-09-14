@@ -3,7 +3,9 @@ package ru.koylubaevaem;
 import java.io.*;
 import java.util.*;
 
-public class Basket {
+public class Basket implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     public static final String ARRAY_ELEMENTS_SEPARATOR = ";";
     private String[] products;
@@ -64,6 +66,42 @@ public class Basket {
         }
     }
 
+    public void saveBin(File file) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file))) {
+            oos.writeObject(this);
+        } catch (Exception ignore) {
+        }
+
+//        /* custom */
+//        try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(file))) {
+//            //arr.length,arr[i],arr1.length,arr1[i]
+//            dos.writeUTF("partam");;
+//            dos.writeInt(quantity.length);
+//            for(long q: quantity) {
+//                dos.writeLong(q);
+//            }
+//            dos.writeInt(prices.length);
+//            for(long price: prices) {
+//                dos.writeLong(price);
+//            }
+//            dos.writeInt(products.length);
+//            for(String product: products) {
+//                dos.writeUTF(product);
+//            }
+//
+//        }catch (Exception ignore) {}
+//
+//        try (DataInputStream is = new DataInputStream()) {
+//            String partam = is.readUTF();
+//            int quantityLength = is.readInt();
+//            long[] q = new long[quantityLength];
+//            for (int i = 0; i < quantityLength; i++) {
+//                q[i] = is.readLong();
+//            }
+//
+//        }
+    }
+
     public String[] getProducts() {
         return products;
     }
@@ -72,7 +110,7 @@ public class Basket {
         return prices;
     }
 
-    public static Basket loadFromTxtFile(File textFile) throws IOException {
+    public static Basket loadFromTxtFile(File textFile) {
         try (BufferedReader buf = new BufferedReader(new FileReader(textFile))) {
             if (buf.ready()) {
                 int[] quantity = Arrays.stream(buf.readLine().split(ARRAY_ELEMENTS_SEPARATOR))
@@ -86,7 +124,17 @@ public class Basket {
                 basket.quantity = quantity;
                 return basket;
             }
-        } catch (Exception ignore) {}
+        } catch (Exception ignore) {
+        }
         return null;
     }
+
+    static Basket loadFromBinFile(File file) {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
+            return (Basket) ois.readObject();
+        } catch (Exception ignore) {
+        }
+        return null;
+    }
+
 }

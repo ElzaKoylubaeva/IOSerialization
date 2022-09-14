@@ -22,11 +22,11 @@ public class Main {
 //        2.Создание массива цен на продукты (без пользовательского ввода);
         int[] prices = {427, 73, 42, 90, 78, 63, 129};
 
-        String pathName = "basket.txt";
+        String pathName = "basket.bin";
         File file = new File(pathName);
         Basket basket;
         if (file.exists()) {
-            basket = Basket.loadFromTxtFile(new File(pathName));
+            basket = Basket.loadFromBinFile(new File(pathName));
             if (basket == null) {
                 basket = new Basket(products, prices);
             } else {
@@ -66,7 +66,7 @@ public class Main {
 
 //            5.Пользователь может добавлять несколько раз один и тот же товар в корзину, в этом случае он должен суммировать
             basket.addToCart(itemOfProduct, amountOfProduct);
-            basket.saveTxt(file);
+            basket.saveBin(file);
         }
 //        6.Вывод всех покупок, их общую стоимость и количество, на экран после ввода всех покупок.
         basket.printCart();
