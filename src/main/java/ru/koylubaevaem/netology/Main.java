@@ -1,4 +1,4 @@
-package ru.koylubaevaem;
+package ru.koylubaevaem.netology;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,7 +7,7 @@ import java.util.Scanner;
 public class Main {
 
     public static void main(String[] args) throws IOException {
-        Scanner scan = new Scanner(System.in);
+        Scanner scan = new Scanner(System.in);// TODO in ClientLog
 //        1.Создание массива продуктов внутри программы (без пользовательского ввода);
         String[] products = {
                 "meat, (1kg)",
@@ -46,7 +46,7 @@ public class Main {
         while (true) {
 //            4.Возможность ввода пользователем одной строкой номера продукта и количества для добавления в корзину;
             System.out.println("Choose the item and amount or 'end' to quit: ");
-            String inputStr = scan.nextLine();
+            String inputStr = scan.nextLine();// TODO in ClientLog
             if (inputStr.equals("end")) {
                 break;
             }
@@ -62,7 +62,7 @@ public class Main {
             } catch (NumberFormatException e) {
                 System.out.println("Data were entered incorrectly.");
                 continue;
-            }
+            }// TODO in ClientLog
 
 //            5.Пользователь может добавлять несколько раз один и тот же товар в корзину, в этом случае он должен суммировать
             basket.addToCart(itemOfProduct, amountOfProduct);

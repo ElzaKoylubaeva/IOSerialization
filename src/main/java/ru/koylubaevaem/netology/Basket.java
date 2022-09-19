@@ -1,4 +1,4 @@
-package ru.koylubaevaem;
+package ru.koylubaevaem.netology;
 
 import java.io.*;
 import java.util.*;
