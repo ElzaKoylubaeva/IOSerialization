@@ -7,7 +7,7 @@ import java.util.Scanner;
 public class Main {
 
     public static void main(String[] args) throws IOException {
-        Scanner scan = new Scanner(System.in);// TODO in ClientLog
+        Scanner scan = new Scanner(System.in);
 //        1.Создание массива продуктов внутри программы (без пользовательского ввода);
         String[] products = {
                 "meat, (1kg)",
@@ -22,11 +22,12 @@ public class Main {
 //        2.Создание массива цен на продукты (без пользовательского ввода);
         int[] prices = {427, 73, 42, 90, 78, 63, 129};
 
-        String pathName = "basket.txt";
+        String pathName = "basket.json";
         File file = new File(pathName);
         Basket basket;
         if (file.exists()) {
-            basket = Basket.loadFromTxtFile(new File(pathName));
+           // basket = Basket.loadFromTxtFile(new File(pathName));
+            basket = Basket.loadFromJsonFile(new File(pathName));
             if (basket == null) {
                 basket = new Basket(products, prices);
             } else {
@@ -41,12 +42,13 @@ public class Main {
             System.out.println((i + 1) + ": " + products[i] + " " + prices[i] + " rub.");
         }
 
-        int itemOfProduct;
+        int productNum;
         int amountOfProduct;
+        ClientLog clientLog = new ClientLog();
         while (true) {
 //            4.Возможность ввода пользователем одной строкой номера продукта и количества для добавления в корзину;
             System.out.println("Choose the item and amount or 'end' to quit: ");
-            String inputStr = scan.nextLine();// TODO in ClientLog
+            String inputStr = scan.nextLine();
             if (inputStr.equals("end")) {
                 break;
             }
@@ -57,19 +59,24 @@ public class Main {
                 continue;
             }
             try {
-                itemOfProduct = Integer.parseInt(parts[0]) - 1; // 0
+                productNum = Integer.parseInt(parts[0]) - 1; // 0
                 amountOfProduct = Integer.parseInt(parts[1]); // 10
             } catch (NumberFormatException e) {
                 System.out.println("Data were entered incorrectly.");
                 continue;
-            }// TODO in ClientLog
+            }
+
+            clientLog.log(productNum, amountOfProduct);
 
 //            5.Пользователь может добавлять несколько раз один и тот же товар в корзину, в этом случае он должен суммировать
-            basket.addToCart(itemOfProduct, amountOfProduct);
-            basket.saveTxt(file);
+            basket.addToCart(productNum, amountOfProduct);
+            //basket.saveTxt(file);
+            basket.saveJson(file);
         }
 //        6.Вывод всех покупок, их общую стоимость и количество, на экран после ввода всех покупок.
         basket.printCart();
+        File csvFile = new File("log.csv");
+        clientLog.exportAsCSV(csvFile);
     }
 }
 
