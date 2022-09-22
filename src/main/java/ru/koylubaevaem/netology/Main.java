@@ -1,5 +1,16 @@
 package ru.koylubaevaem.netology;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
+import org.xml.sax.SAXException;
+import ru.koylubaevaem.netology.config.Config;
+import ru.koylubaevaem.netology.config.Prop;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.util.Scanner;
@@ -7,6 +18,10 @@ import java.util.Scanner;
 public class Main {
 
     public static void main(String[] args) throws IOException {
+        // чтение XML файла
+        String fileName = "shop.xml";
+        Config config = readXmlFile(fileName);
+
         Scanner scan = new Scanner(System.in);
 //        1.Создание массива продуктов внутри программы (без пользовательского ввода);
         String[] products = {
@@ -22,19 +37,26 @@ public class Main {
 //        2.Создание массива цен на продукты (без пользовательского ввода);
         int[] prices = {427, 73, 42, 90, 78, 63, 129};
 
-        String pathName = "basket.json";
-        File file = new File(pathName);
-        Basket basket;
-        if (file.exists()) {
-           // basket = Basket.loadFromTxtFile(new File(pathName));
-            basket = Basket.loadFromJsonFile(new File(pathName));
-            if (basket == null) {
-                basket = new Basket(products, prices);
-            } else {
-                products = basket.getProducts();
-                prices = basket.getPrices();
+        Basket basket = null;
+        if (config != null && config.getLoad().isEnabled()) {
+            Prop configLoad = config.getLoad();
+            // загружаем корзину из файла
+            String format = configLoad.getFormat();
+            if (format == null || format.isBlank()) {
+                format = "json";
             }
-        } else {
+            String logFileName = configLoad.getFileName();
+            if (logFileName == null || logFileName.isBlank()) {
+                logFileName = "basket." + format;
+            }
+            File file = new File(logFileName);
+            if ("json".equals(format)) {
+                basket = Basket.loadFromJsonFile(file);
+            } else {
+                basket = Basket.loadFromTxtFile(file);
+            }
+        }
+        if (basket == null){
             basket = new Basket(products, prices);
         }
         // 3.Вывод списка доступных для покупки продуктов на экран;
@@ -70,13 +92,91 @@ public class Main {
 
 //            5.Пользователь может добавлять несколько раз один и тот же товар в корзину, в этом случае он должен суммировать
             basket.addToCart(productNum, amountOfProduct);
-            //basket.saveTxt(file);
-            basket.saveJson(file);
+
+            if (config != null && config.getSave().isEnabled()) {
+                Prop configSave = config.getSave();
+                String format = configSave.getFormat();
+                if (format == null || format.isBlank()) {
+                    format = "json";
+                }
+                String saveFileName = configSave.getFileName();
+                if (saveFileName == null || saveFileName.isBlank()) {
+                    saveFileName = "basket." + format;
+                }
+                File saveFile = new File(saveFileName);
+                if ("json".equals(format)) {
+                    basket.saveJson(saveFile);
+                } else {
+                    basket.saveTxt(saveFile);
+                }
+            }
         }
 //        6.Вывод всех покупок, их общую стоимость и количество, на экран после ввода всех покупок.
         basket.printCart();
-        File csvFile = new File("log.csv");
-        clientLog.exportAsCSV(csvFile);
+
+        if (config != null && config.getLog().isEnabled()) {
+            String logFileName = config.getLog().getFileName();
+            if (logFileName == null || logFileName.isBlank()) {
+                logFileName = "log.csv";
+            }
+            File csvFile = new File(logFileName);
+            clientLog.exportAsCSV(csvFile);
+        }
+    }
+
+    private static Config readXmlFile(String xmlFileName) {
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document doc = builder.parse(xmlFileName);
+
+            // Fill Load Settings
+            Prop load = fillSettings("load", doc);
+
+            // Fill Save Settings
+            Prop save = fillSettings("save", doc);
+
+            // Fill Log Settings
+            Prop log = fillSettings("log", doc);
+
+            Config config = new Config();
+            config.setLoad(load);
+            config.setSave(save);
+            config.setLog(log);
+            return config;
+        } catch (ParserConfigurationException | IOException | SAXException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static Prop fillSettings(String tagName, Document doc) {
+        Prop prop = new Prop();
+        NodeList nodeList = doc.getElementsByTagName(tagName);
+        Element saveElement = (Element) nodeList.item(0);
+        var enabled = getBooleanFromElement("enabled", saveElement);
+        var fileName = getTextFromElement("fileName", saveElement);
+        var format = getTextFromElement("format", saveElement);
+        prop.setFileName(fileName);
+        prop.setEnabled(enabled);
+        prop.setFormat(format);
+        return prop;
+    }
+
+    public static String getTextFromElement(String tagName, Element element) {
+        var nodeList = element.getElementsByTagName(tagName);
+        if (nodeList.getLength() > 0) {
+            var item = (Element) nodeList.item(0);
+            var text = (Text) item.getFirstChild();
+            return text.getWholeText();
+        } else {
+            return null;
+        }
+    }
+
+    public static Boolean getBooleanFromElement(String tagName, Element element) {
+        String text = getTextFromElement(tagName, element);
+        return Boolean.parseBoolean(text);
     }
 }
 

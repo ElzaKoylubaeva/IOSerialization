@@ -4,7 +4,6 @@ target/
 .idea
 
 # Project custom files
-basket.txt
-basket.bin
-basket.json
-log.csv
+*.txt
+*.json
+*.csv
